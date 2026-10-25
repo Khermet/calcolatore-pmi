@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { passaggi, testoVerbale } from './verbale.ts';
+import { frasiReperti, passaggi, testoVerbale } from './verbale.ts';
 import { orarioPrecedente } from './formato.ts';
 import { CASI } from './casi.ts';
 import { stimaPMI } from './henssge.ts';
@@ -31,10 +31,26 @@ test('testo del verbale con orari e metodo composto', () => {
     oraMisura: '12:00',
     scelte: { rigidita: 'assente' },
   });
-  assert.match(t, /Alle ore 12:00/);
-  assert.match(t, /compreso tra 6,9 e 12,5 ore/);
-  assert.match(t, /metodo composto/);
+  assert.match(t, /^Alle ore 12:00 è stata rilevata una temperatura rettale di 30,0 °C/);
+  assert.match(t, /\(limiti al 95%: 6,9-12,5 ore\)\.\n\n/); // dato termico e reperti in due capoversi
+  assert.match(t, /l'intervallo si restringe a 6,9-7,0 ore, compatibile con un decesso avvenuto tra le ore 05:00 e le ore 05:07\./);
   assert.doesNotMatch(t, /—/); // niente lineette lunghe nei testi per documenti
+});
+
+test('verbale: reperti dello stesso gruppo fusi in una frase', () => {
+  assert.equal(
+    frasiReperti({ ipostasi: 'confluenti', digitopressione: 'scompaiono', rigidita: 'completa', ripristino: 'non-si-ripristina' }),
+    'ipostasi confluenti, non ancora alla massima estensione, non ancora fisse alla digitopressione; ' +
+      'rigidità cadaverica completa, che non si ricostituisce dopo risoluzione manuale',
+  );
+  assert.match(frasiReperti({ occhio: 'grado-III' }), /grado III/); // numerale romano non abbassato
+});
+
+test('verbale: reperti che non restringono e reperti incompatibili', () => {
+  const base = { tRettale: 30, tAmbiente: 15, peso: 70, cf: 1, oraMisura: '12:00' };
+  assert.match(testoVerbale({ ...base, scelte: { rigidita: 'completa' } }), /compatibili con tale intervallo e non consentono di restringerlo; il decesso è pertanto collocabile tra le ore 23:31 del giorno precedente e le ore 05:07\./);
+  assert.match(testoVerbale({ ...base, scelte: { zsako: 'presente' } }), /non risultano compatibili con l'intervallo termico/);
+  assert.match(testoVerbale({ ...base, scelte: {} }), /Il decesso è pertanto collocabile tra le ore 23:31 del giorno precedente e le ore 05:07\.$/);
 });
 
 test('verbale e passaggi con temperatura ambiente incerta', () => {
