@@ -5,8 +5,8 @@ import { combina, type Limiti, type Scelte } from '../composto.ts';
 import { numero, virgola } from '../formato.ts';
 import { stimaPMI } from '../henssge.ts';
 import { simula } from '../incertezza.ts';
-import { Campo, Passaggi, TestoVerbale } from '../ui/componenti.tsx';
-import { MetodoComposto } from '../ui/MetodoComposto.tsx';
+import { Campo, Colonne, Pannello, Passaggi, TestoVerbale } from '../ui/componenti.tsx';
+import { MetodoComposto, riassuntoComposto } from '../ui/MetodoComposto.tsx';
 import { Nomogramma } from '../ui/Nomogramma.tsx';
 import { RisultatoHenssge, RisultatoIncerto } from '../ui/Risultati.tsx';
 import { stili } from '../ui/stili.ts';
@@ -39,14 +39,16 @@ function Esercizio(props: { caso: Caso; onIndietro: () => void }) {
       <Pressable onPress={props.onIndietro}>
         <Text style={stili.link}>‹ Tutti i casi</Text>
       </Pressable>
-      <Text style={[stili.titolo, { marginTop: 12 }]}>{c.titolo}</Text>
+      <Text style={[stili.titolo, { marginTop: 8 }]}>{c.titolo}</Text>
       <Text style={stili.paragrafo}>{c.scenario}</Text>
       <Text style={[stili.paragrafo, { fontWeight: '600' }]}>{c.domanda}</Text>
 
       <View style={stili.blocco}>
         <Text style={stili.sezione}>La tua risposta</Text>
-        <Campo etichetta="Intervallo post-mortale: da" valore={da} onChange={setDa} unita="h" />
-        <Campo etichetta="a" valore={a} onChange={setA} unita="h" />
+        <Colonne>
+          <Campo etichetta="Da" valore={da} onChange={setDa} unita="h" />
+          <Campo etichetta="A" valore={a} onChange={setA} unita="h" />
+        </Colonne>
         <Pressable style={stili.pulsante} onPress={() => setSoluzione(true)}>
           <Text style={stili.pulsanteTesto}>Mostra la soluzione</Text>
         </Pressable>
@@ -88,10 +90,18 @@ function Esercizio(props: { caso: Caso; onIndietro: () => void }) {
             </Text>
           )}
           {incerto && <RisultatoHenssge esito={stimaPMI(c)} cf={c.cf} peso={c.peso} />}
-          <Nomogramma tRettale={c.tRettale} tAmbiente={c.tAmbiente} peso={c.peso} cf={c.cf} esito={stimaPMI(c)} />
-          <MetodoComposto nomogramma={nomogramma} scelte={scelte} onScelte={setScelte} />
-          <Passaggi dati={c} />
-          <TestoVerbale dati={{ ...c, scelte }} />
+          <Pannello titolo="Nomogramma" aperto>
+            <Nomogramma tRettale={c.tRettale} tAmbiente={c.tAmbiente} peso={c.peso} cf={c.cf} esito={stimaPMI(c)} />
+          </Pannello>
+          <Pannello titolo="Metodo composto" riassunto={riassuntoComposto(nomogramma, scelte)}>
+            <MetodoComposto nomogramma={nomogramma} scelte={scelte} onScelte={setScelte} />
+          </Pannello>
+          <Pannello titolo="Passaggi del calcolo" aperto>
+            <Passaggi dati={c} />
+          </Pannello>
+          <Pannello titolo="Testo per il verbale" riassunto="da copiare">
+            <TestoVerbale dati={{ ...c, scelte }} />
+          </Pannello>
         </>
       )}
     </ScrollView>
@@ -109,7 +119,7 @@ export function Esercizi() {
         pubblicato da Henssge e Madea, gli altri sono immaginari.
       </Text>
       {CASI.map((c, k) => (
-        <Pressable key={c.id} style={[stili.tabella, { marginTop: 12 }]} onPress={() => setAperto(c)}>
+        <Pressable key={c.id} style={stili.tabella} onPress={() => setAperto(c)}>
           <Text style={stili.voceTitolo}>
             {k + 1}. {c.titolo}
           </Text>

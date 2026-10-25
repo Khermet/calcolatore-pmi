@@ -44,8 +44,7 @@ export function Nomogramma(props: Props) {
   const [aperto, setAperto] = useState(false);
   const caldo = props.tAmbiente > 23;
   return (
-    <View style={stili.blocco}>
-      <Text style={stili.sezione}>Nomogramma</Text>
+    <View>
       <Text style={stili.fonte}>
         Costruito dalle equazioni di Henssge per {caldo ? 'Ta > 23 °C' : 'Ta ≤ 23 °C'}, non è la riproduzione della figura
         pubblicata. Si unisce la temperatura rettale (sinistra) con l'ambiente (destra); dal centro si traccia il raggio per

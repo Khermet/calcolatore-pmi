@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { ScrollView, Text } from 'react-native';
 import type { Limiti, Scelte } from '../composto.ts';
-import { numero } from '../formato.ts';
+import { numero, virgola } from '../formato.ts';
 import { stimaPMI } from '../henssge.ts';
 import { simula } from '../incertezza.ts';
-import { Campo, Interruttore, Passaggi, SceltaFattore, TestoVerbale } from '../ui/componenti.tsx';
-import { MetodoComposto } from '../ui/MetodoComposto.tsx';
+import { Campo, Colonne, Interruttore, Pannello, Passaggi, SceltaFattore, TestoVerbale } from '../ui/componenti.tsx';
+import { MetodoComposto, riassuntoComposto } from '../ui/MetodoComposto.tsx';
 import { Nomogramma } from '../ui/Nomogramma.tsx';
 import { RisultatoHenssge, RisultatoIncerto } from '../ui/Risultati.tsx';
 import { stili } from '../ui/stili.ts';
@@ -49,33 +49,38 @@ export function Calcolo() {
   return (
     <ScrollView contentContainerStyle={stili.contenuto} keyboardShouldPersistTaps="handled">
       <Text style={stili.titolo}>Epoca della morte</Text>
-      <Text style={stili.sottotitolo}>Metodo di Henssge (temperatura rettale) e metodo composto</Text>
+      <Text style={stili.sottotitolo}>Metodo di Henssge e metodo composto</Text>
 
-      <Campo etichetta="Ora della misurazione (facoltativa, es. 10:30)" valore={oraMisura} onChange={setOraMisura} unita="" tastiera="testo" />
-      <Campo etichetta="Temperatura rettale" valore={tRettale} onChange={setTRettale} unita="°C" />
       {incerta ? (
-        <>
-          <Campo etichetta="Temperatura ambiente minima plausibile" valore={taMin} onChange={setTaMin} unita="°C" />
-          <Campo etichetta="Temperatura ambiente massima plausibile" valore={taMax} onChange={setTaMax} unita="°C" />
-        </>
+        <Colonne>
+          <Campo etichetta="Rettale" valore={tRettale} onChange={setTRettale} unita="°C" />
+          <Campo etichetta="Ambiente min" valore={taMin} onChange={setTaMin} unita="°C" />
+          <Campo etichetta="Ambiente max" valore={taMax} onChange={setTaMax} unita="°C" />
+        </Colonne>
       ) : (
-        <Campo etichetta="Temperatura ambiente" valore={tAmbiente} onChange={setTAmbiente} unita="°C" />
+        <Colonne>
+          <Campo etichetta="Rettale" valore={tRettale} onChange={setTRettale} unita="°C" />
+          <Campo etichetta="Ambiente" valore={tAmbiente} onChange={setTAmbiente} unita="°C" />
+        </Colonne>
       )}
+      <Colonne>
+        <Campo etichetta="Peso" valore={peso} onChange={setPeso} unita="kg" />
+        <Campo
+          etichetta="Fattore correttivo"
+          valore={cf}
+          onChange={(v) => {
+            setCf(v);
+            setCondizioni('');
+          }}
+          unita=""
+        />
+        <Campo etichetta="Ora misura" valore={oraMisura} onChange={setOraMisura} unita="" tastiera="testo" segnaposto="10:30" />
+      </Colonne>
       <Interruttore
         attivo={incerta}
         onCambia={setIncerta}
         testoSi="Usa un valore unico di temperatura ambiente"
         testoNo="Temperatura ambiente incerta? Inserisci un intervallo"
-      />
-      <Campo etichetta="Peso corporeo" valore={peso} onChange={setPeso} unita="kg" />
-      <Campo
-        etichetta="Fattore correttivo"
-        valore={cf}
-        onChange={(v) => {
-          setCf(v);
-          setCondizioni('');
-        }}
-        unita="cf"
       />
       <SceltaFattore
         cf={cf}
@@ -91,14 +96,22 @@ export function Calcolo() {
         <RisultatoHenssge esito={esito} cf={dati.cf} peso={dati.peso} />
       )}
 
-      <Nomogramma tRettale={tr} tAmbiente={ta} peso={dati.peso} cf={dati.cf} esito={esito} />
-      {incerta && (
-        <Text style={stili.fonte}>Nel nomogramma la temperatura ambiente è il valore centrale dell'intervallo.</Text>
-      )}
+      <Pannello titolo="Nomogramma" riassunto={esito.ok ? `lettura ${virgola(esito.ore)} h` : 'non applicabile'}>
+        <Nomogramma tRettale={tr} tAmbiente={ta} peso={dati.peso} cf={dati.cf} esito={esito} />
+        {incerta && (
+          <Text style={stili.fonte}>Nel nomogramma la temperatura ambiente è il valore centrale dell'intervallo.</Text>
+        )}
+      </Pannello>
 
-      <MetodoComposto nomogramma={nomogramma} scelte={scelte} onScelte={setScelte} />
-      <Passaggi dati={caso} />
-      <TestoVerbale dati={caso} />
+      <Pannello titolo="Metodo composto" riassunto={riassuntoComposto(nomogramma, scelte)}>
+        <MetodoComposto nomogramma={nomogramma} scelte={scelte} onScelte={setScelte} />
+      </Pannello>
+      <Pannello titolo="Passaggi del calcolo">
+        <Passaggi dati={caso} />
+      </Pannello>
+      <Pannello titolo="Testo per il verbale" riassunto="da copiare">
+        <TestoVerbale dati={caso} />
+      </Pannello>
 
       <Text style={stili.avvertenza}>
         Strumento didattico. Non applicabile con irraggiamento, corpo spostato, ipotermia o cambiamenti marcati

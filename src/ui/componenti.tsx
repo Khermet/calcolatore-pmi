@@ -1,5 +1,5 @@
 import * as Clipboard from 'expo-clipboard';
-import { useState } from 'react';
+import { Children, useState, type ReactNode } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { FATTORI } from '../fattori.ts';
 import { numero, virgola } from '../formato.ts';
@@ -12,20 +12,50 @@ export function Campo(props: {
   onChange: (v: string) => void;
   unita: string;
   tastiera?: 'decimale' | 'testo';
+  segnaposto?: string;
 }) {
   return (
     <View style={stili.campo}>
-      <Text style={stili.etichetta}>{props.etichetta}</Text>
-      <View style={stili.riga}>
-        <TextInput
-          style={stili.input}
-          value={props.valore}
-          onChangeText={props.onChange}
-          keyboardType="numbers-and-punctuation"
-          inputMode={props.tastiera === 'testo' ? 'text' : 'decimal'}
-        />
-        <Text style={stili.unita}>{props.unita}</Text>
-      </View>
+      <Text style={stili.etichetta} numberOfLines={1}>
+        {props.etichetta}
+        {props.unita ? ` (${props.unita})` : ''}
+      </Text>
+      <TextInput
+        style={stili.input}
+        value={props.valore}
+        onChangeText={props.onChange}
+        placeholder={props.segnaposto}
+        placeholderTextColor="#b0b5bb"
+        keyboardType="numbers-and-punctuation"
+        inputMode={props.tastiera === 'testo' ? 'text' : 'decimal'}
+      />
+    </View>
+  );
+}
+
+export function Colonne(props: { children: ReactNode }) {
+  return (
+    <View style={stili.colonne}>
+      {Children.map(props.children, (c) => (
+        <View style={stili.colonna}>{c}</View>
+      ))}
+    </View>
+  );
+}
+
+// Sezione richiudibile: intestazione con riassunto sempre visibile, corpo a richiesta.
+export function Pannello(props: { titolo: string; riassunto?: string; aperto?: boolean; children: ReactNode }) {
+  const [aperto, setAperto] = useState(props.aperto ?? false);
+  return (
+    <View style={stili.pannello}>
+      <Pressable style={stili.pannelloTesta} onPress={() => setAperto(!aperto)} accessibilityRole="button">
+        <Text style={stili.pannelloTitolo}>{props.titolo}</Text>
+        <Text style={stili.pannelloRiassunto} numberOfLines={1}>
+          {props.riassunto ?? ''}
+        </Text>
+        <Text style={stili.pannelloFreccia}>{aperto ? '▾' : '▸'}</Text>
+      </Pressable>
+      {aperto && <View style={stili.pannelloCorpo}>{props.children}</View>}
     </View>
   );
 }
@@ -83,8 +113,7 @@ export function SceltaFattore(props: { cf: string; onScelta: (cf: string, descri
 
 export function Passaggi(props: { dati: DatiCaso }) {
   return (
-    <View style={stili.blocco}>
-      <Text style={stili.sezione}>Come si arriva al risultato</Text>
+    <View>
       {passaggi(props.dati).map((p) => (
         <Text key={p} style={stili.passaggio}>
           {p}
@@ -98,8 +127,7 @@ export function TestoVerbale(props: { dati: DatiCaso }) {
   const [copiato, setCopiato] = useState(false);
   const testo = testoVerbale(props.dati);
   return (
-    <View style={stili.blocco}>
-      <Text style={stili.sezione}>Testo per il verbale</Text>
+    <View>
       <Text style={stili.paragrafo} selectable>
         {testo}
       </Text>

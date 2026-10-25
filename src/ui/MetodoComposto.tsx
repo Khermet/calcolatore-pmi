@@ -4,6 +4,16 @@ import { CRITERI, combina, type Limiti, type Scelte } from '../composto.ts';
 import { virgola } from '../formato.ts';
 import { stili } from './stili.ts';
 
+// riga di riepilogo per l'intestazione del pannello
+export function riassuntoComposto(nomogramma: Limiti, scelte: Scelte): string {
+  const n = Object.values(scelte).filter(Boolean).length;
+  if (n === 0) return 'nessun reperto';
+  const reperti = `${n} ${n === 1 ? 'reperto' : 'reperti'}`;
+  const e = combina(nomogramma, scelte);
+  if (e.contraddizione) return `${reperti} · incompatibili`;
+  return `${reperti} · ${virgola(e.min)}-${e.max === null ? '…' : virgola(e.max)} h`;
+}
+
 export function MetodoComposto(props: { nomogramma: Limiti; scelte: Scelte; onScelte: (s: Scelte) => void }) {
   const { scelte, onScelte } = props;
   // i criteri strumentali partono visibili se il caso ne contiene già uno
@@ -16,8 +26,7 @@ export function MetodoComposto(props: { nomogramma: Limiti; scelte: Scelte; onSc
   const testoMax = e.max === null ? 'non definito' : `${virgola(e.max)} h`;
 
   return (
-    <View style={stili.blocco}>
-      <Text style={stili.sezione}>Metodo composto</Text>
+    <View>
       <Text style={stili.fonte}>
         Segna solo i reperti rilevati. Ogni reperto può alzare il limite inferiore o abbassare quello superiore.
       </Text>
