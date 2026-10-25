@@ -23,5 +23,7 @@
     "web": "expo start --web",
     "test": "node --test src/*.test.ts"
   },
+  "license": "MIT",
+  "author": "Francesco Carravetta",
   "private": true
 }
