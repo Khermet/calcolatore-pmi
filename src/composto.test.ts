@@ -22,7 +22,7 @@ test('i criteri restringono solo se migliorano i limiti', () => {
   const e = combina({ min: 2, max: 9 }, { spostamento: 'completo', rigidita: 'completa' });
   assert.equal(e.min, 2);
   assert.equal(e.max, 6);
-  assert.match(e.determinanti.max!, /cambio di posizione/);
+  assert.match(e.determinanti.max!, /Spostamento delle ipostasi/);
   assert.equal(e.determinanti.min, null);
 });
 

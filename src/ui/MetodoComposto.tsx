@@ -35,9 +35,14 @@ export function MetodoComposto(props: { nomogramma: Limiti; scelte: Scelte; onSc
           <Text style={stili.voceTitolo}>
             {c.titolo} <Text style={stili.fonte}>({c.fonte})</Text>
           </Text>
-          {c.requisito !== 'nessuno' && (
+          {(c.nota || c.requisito !== 'nessuno') && (
             <Text style={stili.voceSotto}>
-              {c.requisito === 'stimolatore' ? 'Richiede uno stimolatore elettrico' : 'Richiede il collirio/farmaco'}
+              {[
+                c.nota,
+                c.requisito === 'stimolatore' ? 'richiede uno stimolatore' : c.requisito === 'farmaco' ? 'richiede il farmaco' : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
             </Text>
           )}
           <View style={stili.chips}>
@@ -49,7 +54,7 @@ export function MetodoComposto(props: { nomogramma: Limiti; scelte: Scelte; onSc
                   onPress={() => onScelte({ ...scelte, [c.id]: attivo ? undefined : o.id })}
                   style={[stili.chip, attivo && stili.schedaAttiva]}
                 >
-                  <Text style={attivo ? stili.schedaTestoAttivo : stili.schedaTesto}>{o.etichetta}</Text>
+                  <Text style={attivo ? stili.schedaTestoAttivo : stili.schedaTesto}>{o.breve ?? o.etichetta}</Text>
                 </Pressable>
               );
             })}
