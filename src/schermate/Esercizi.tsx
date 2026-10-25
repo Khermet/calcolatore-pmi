@@ -7,6 +7,7 @@ import { stimaPMI } from '../henssge.ts';
 import { simula } from '../incertezza.ts';
 import { Campo, Passaggi, TestoVerbale } from '../ui/componenti.tsx';
 import { MetodoComposto } from '../ui/MetodoComposto.tsx';
+import { Nomogramma } from '../ui/Nomogramma.tsx';
 import { RisultatoHenssge, RisultatoIncerto } from '../ui/Risultati.tsx';
 import { stili } from '../ui/stili.ts';
 
@@ -87,6 +88,7 @@ function Esercizio(props: { caso: Caso; onIndietro: () => void }) {
             </Text>
           )}
           {incerto && <RisultatoHenssge esito={stimaPMI(c)} cf={c.cf} peso={c.peso} />}
+          <Nomogramma tRettale={c.tRettale} tAmbiente={c.tAmbiente} peso={c.peso} cf={c.cf} esito={stimaPMI(c)} />
           <MetodoComposto nomogramma={nomogramma} scelte={scelte} onScelte={setScelte} />
           <Passaggi dati={c} />
           <TestoVerbale dati={{ ...c, scelte }} />

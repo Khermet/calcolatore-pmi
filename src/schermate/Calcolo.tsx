@@ -6,6 +6,7 @@ import { stimaPMI } from '../henssge.ts';
 import { simula } from '../incertezza.ts';
 import { Campo, Interruttore, Passaggi, SceltaFattore, TestoVerbale } from '../ui/componenti.tsx';
 import { MetodoComposto } from '../ui/MetodoComposto.tsx';
+import { Nomogramma } from '../ui/Nomogramma.tsx';
 import { RisultatoHenssge, RisultatoIncerto } from '../ui/Risultati.tsx';
 import { stili } from '../ui/stili.ts';
 
@@ -88,6 +89,11 @@ export function Calcolo() {
         <RisultatoIncerto esito={simulazione} taMin={min} taMax={max} />
       ) : (
         <RisultatoHenssge esito={esito} cf={dati.cf} peso={dati.peso} />
+      )}
+
+      <Nomogramma tRettale={tr} tAmbiente={ta} peso={dati.peso} cf={dati.cf} esito={esito} />
+      {incerta && (
+        <Text style={stili.fonte}>Nel nomogramma la temperatura ambiente è il valore centrale dell'intervallo.</Text>
       )}
 
       <MetodoComposto nomogramma={nomogramma} scelte={scelte} onScelte={setScelte} />
