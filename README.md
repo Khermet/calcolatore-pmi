@@ -15,6 +15,7 @@ Dal telefono si può aggiungere alla schermata Home e poi funziona anche senza r
 - **Metodo composto**: ipostasi, rigidità, eccitabilità meccanica; facoltativi eccitabilità elettrica e iride.
 - **Temperatura ambiente incerta**: simulazione Monte Carlo sull'intervallo plausibile.
 - **Didattica**: passaggi del calcolo e testo per il verbale.
+- **Sopralluogo**: checklist per l'esame del cadavere sul luogo (arrivo, luogo, cadavere, epoca della morte, tracce, chiusura; sezione facoltativa per l'incidente stradale), con le spunte salvate sul dispositivo e l'elenco copiabile.
 
 ## Fonti
 
@@ -22,6 +23,8 @@ Dal telefono si può aggiungere alla schermata Home e poi funziona anche senza r
 - Hubig M, Muggenthaler H, Mall G. *Confidence intervals in temperature-based death time determination*. Leg Med 2014.
 - Zirn A et al. *Development of a mobile application to estimate time of death based on the compound method*. Int J Legal Med 2026;140:3367-3378.
 - Heinrich et al. *An assessment of the Henssge method for forensic death time estimation in the early post-mortem interval*. Int J Legal Med 2024.
+- Consiglio d'Europa, Raccomandazione n. R (99) 3 sull'armonizzazione delle regole dell'autopsia medico-legale (1999), Principio I, nella versione SGRM *Swiss Principles and Rules for Medico-Legal Autopsy* (rev. 2019).
+- Puccini C. *Istituzioni di medicina legale*, cap. 22 «Sopralluogo giudiziario».
 - Pellini E. *Revaluation of the Henssge nomogram*, tesi di dottorato, Università di Verona (tabella dei fattori correttivi).
 
 Il nomogramma dell'app è generato dalle equazioni e non riproduce la figura pubblicata.

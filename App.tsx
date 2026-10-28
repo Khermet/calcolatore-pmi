@@ -1,14 +1,32 @@
 import { StatusBar } from 'expo-status-bar';
-import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import { useState } from 'react';
+import { KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 import { Calcolo } from './src/schermate/Calcolo.tsx';
+import { Sopralluogo } from './src/schermate/Sopralluogo.tsx';
 import { stili } from './src/ui/stili.ts';
 
+const SCHEDE = [
+  { id: 'calcolo', titolo: 'Calcolo' },
+  { id: 'sopralluogo', titolo: 'Sopralluogo' },
+] as const;
+
 export default function App() {
+  const [scheda, setScheda] = useState<(typeof SCHEDE)[number]['id']>('calcolo');
   return (
     <KeyboardAvoidingView style={stili.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      {/* sul telefono lascia spazio alla barra di stato; sul web no */}
-      <View style={{ flex: 1, paddingTop: Platform.OS === 'web' ? 0 : 44 }}>
+      <View style={stili.barraSchede}>
+        {SCHEDE.map((s) => (
+          <Pressable key={s.id} onPress={() => setScheda(s.id)} style={[stili.scheda2, scheda === s.id && stili.schedaAttiva]}>
+            <Text style={scheda === s.id ? stili.schedaTestoAttivo : stili.schedaTesto}>{s.titolo}</Text>
+          </Pressable>
+        ))}
+      </View>
+      {/* entrambe restano montate: passando da una scheda all'altra non si perdono i dati inseriti */}
+      <View style={{ flex: 1, display: scheda === 'calcolo' ? 'flex' : 'none' }}>
         <Calcolo />
+      </View>
+      <View style={{ flex: 1, display: scheda === 'sopralluogo' ? 'flex' : 'none' }}>
+        <Sopralluogo />
       </View>
       <StatusBar style="auto" />
     </KeyboardAvoidingView>
