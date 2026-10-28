@@ -14,7 +14,7 @@ Dal telefono si può aggiungere alla schermata Home e poi funziona anche senza r
 - **Confronto degli intervalli**: limiti di ogni reperto selezionato e grafico sulla stessa scala in ore, con sovrapposizione comune, incompatibilità e limiti aperti.
 - **Metodo composto**: ipostasi, rigidità, eccitabilità meccanica; facoltativi eccitabilità elettrica e iride.
 - **Temperatura ambiente incerta**: simulazione Monte Carlo sull'intervallo plausibile.
-- **Didattica**: passaggi del calcolo, testo per il verbale, casi esercitativi con soluzione.
+- **Didattica**: passaggi del calcolo e testo per il verbale.
 
 ## Fonti
 

@@ -2,10 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { frasiReperti, passaggi, testoVerbale } from './verbale.ts';
 import { orarioPrecedente } from './formato.ts';
-import { CASI } from './casi.ts';
-import { stimaPMI } from './henssge.ts';
-import { combina } from './composto.ts';
-import { simula } from './incertezza.ts';
 
 test('orario del decesso a ritroso, anche oltre la mezzanotte', () => {
   assert.deepEqual(orarioPrecedente('10:00', 2.5), { orario: '07:30', giorniPrima: 0 });
@@ -57,19 +53,4 @@ test('verbale e passaggi con temperatura ambiente incerta', () => {
   const d = { tRettale: 24, tAmbiente: 8, taMin: 6, taMax: 11, peso: 80, cf: 0.75 };
   assert.match(testoVerbale(d), /stimata tra 6,0 e 11,0 °C/);
   assert.match(passaggi(d)[5], /^6\. Temperatura ambiente incerta/);
-});
-
-test('ogni caso esercitativo ha una soluzione coerente', () => {
-  for (const c of CASI) {
-    const e = stimaPMI(c);
-    assert.ok(e.ok, `caso ${c.id}: ${!e.ok && e.errore}`);
-    if (!e.ok) continue;
-    const nomogramma =
-      e.margine === null ? { min: null, max: null } : { min: Math.max(0, e.ore - e.margine), max: e.ore + e.margine };
-    assert.equal(combina(nomogramma, c.scelte).contraddizione, false, `caso ${c.id} contraddittorio`);
-    if (c.taMin !== undefined && c.taMax !== undefined) {
-      const s = simula({ tRettale: c.tRettale, taMin: c.taMin, taMax: c.taMax, peso: c.peso, cf: c.cf });
-      assert.ok(s.ok, `caso ${c.id}: simulazione non valida`);
-    }
-  }
 });
