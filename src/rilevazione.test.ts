@@ -11,18 +11,18 @@ test('data e ora obbligatorie: rifiuta date impossibili e orari fuori campo', ()
 });
 
 test('sottrae le ore dal rilievo di prima mattina passando al giorno precedente', () => {
-  assert.equal(dataOraPrecedente('28/10/2026', '06:00', 8.5), '27/10/2026 alle 21:30');
-  assert.equal(dataOraPrecedente('01/01/2026', '01:00', 2), '31/12/2025 alle 23:00');
-  assert.equal(dataOraPrecedente('01/03/2024', '01:00', 26), '28/02/2024 alle 23:00');
-  assert.equal(dataOraPrecedente('01/03/2026', '01:00', 2), '28/02/2026 alle 23:00');
+  assert.equal(dataOraPrecedente('28/10/2026', '06:00', 8.5), '27/10/2026 alle ore 21:30');
+  assert.equal(dataOraPrecedente('01/01/2026', '01:00', 2), '31/12/2025 alle ore 23:00');
+  assert.equal(dataOraPrecedente('01/03/2024', '01:00', 26), '28/02/2024 alle ore 23:00');
+  assert.equal(dataOraPrecedente('01/03/2026', '01:00', 2), '28/02/2026 alle ore 23:00');
   assert.equal(dataOraPrecedente('28/10/2026', '06:00', Infinity), null);
   assert.equal(dataOraPrecedente('28/10/2026', '06:00', -1), null);
 });
 
 test('colloca estremi cronologicamente e mantiene i limiti aperti', () => {
-  assert.equal(collocaIntervallo('28/10/2026', '06:00', { min: 2, max: 8.5 }), 'tra il 27/10/2026 alle 21:30 e il 28/10/2026 alle 04:00');
-  assert.equal(collocaIntervallo('28/10/2026', '06:00', { min: 24, max: null }), 'non oltre il 27/10/2026 alle 06:00');
-  assert.equal(collocaIntervallo('28/10/2026', '06:00', { min: null, max: 3 }), 'tra il 28/10/2026 alle 03:00 e il 28/10/2026 alle 06:00');
+  assert.equal(collocaIntervallo('28/10/2026', '06:00', { min: 2, max: 8.5 }), 'tra il 27/10/2026 alle ore 21:30 e il 28/10/2026 alle ore 04:00');
+  assert.equal(collocaIntervallo('28/10/2026', '06:00', { min: 24, max: null }), 'non oltre il 27/10/2026 alle ore 06:00');
+  assert.equal(collocaIntervallo('28/10/2026', '06:00', { min: null, max: 3 }), 'il 28/10/2026 tra le ore 03:00 e le ore 06:00');
   assert.equal(collocaIntervallo('28/10/2026', '06:00', { min: 7, max: 3 }), null);
   assert.equal(collocaIntervallo('28/10/2026', '06:00', { min: null, max: null }), null);
 });
@@ -30,15 +30,18 @@ test('colloca estremi cronologicamente e mantiene i limiti aperti', () => {
 test('verbale riporta data del rilievo e date del decesso oltre la mezzanotte', () => {
   const t = testoVerbale({ tRettale: 30, tAmbiente: 15, peso: 70, cf: 1, dataMisura: '28/10/2026', oraMisura: '06:00' });
   assert.match(t, /28\/10\/2026.*06:00/);
-  assert.match(t, /27\/10\/2026 alle 17:31/);
-  assert.match(t, /27\/10\/2026 alle 23:07/);
+  // stesso giorno: la data compare una volta sola
+  assert.match(t, /collocabile il 27\/10\/2026 tra le ore 17:31 e le ore 23:07\./);
+  // a cavallo della mezzanotte restano entrambe le date (limiti 2,4-8,0 ore prima delle 05:00)
+  const cavallo = testoVerbale({ tRettale: 34, tAmbiente: 15, peso: 70, cf: 1, dataMisura: '28/10/2026', oraMisura: '05:00' });
+  assert.match(cavallo, /tra il 27\/10\/2026 alle ore 2\d:\d{2} e il 28\/10\/2026 alle ore 02:\d{2}\./);
 });
 
 test('verbale conserva i reperti anche quando Henssge non è applicabile', () => {
   const t = testoVerbale({ tRettale: 15, tAmbiente: 15, peso: 70, cf: 1, dataMisura: '28/10/2026', oraMisura: '06:00', scelte: { rigidita: 'risoluzione' } });
   assert.match(t, /non è applicabile/);
   assert.match(t, /rigidità cadaverica in fase di risoluzione/);
-  assert.match(t, /non oltre il 27\/10\/2026 alle 06:00/);
+  assert.match(t, /non oltre il 27\/10\/2026 alle ore 06:00/);
   assert.doesNotMatch(t, /si restringe|con tale intervallo/);
 });
 
@@ -58,6 +61,6 @@ test('verbale non sostituisce una simulazione non valida con la temperatura cent
 test('verbale senza limiti della simulazione usa solo i reperti disponibili', () => {
   const t = testoVerbale({ tRettale: 30, tAmbiente: 15, taMin: 18, taMax: 12, peso: 70, cf: 1, dataMisura: '28/10/2026', oraMisura: '06:00', scelte: { rigidita: 'risoluzione' } });
   assert.match(t, /non inferiore a 24,0 ore/);
-  assert.match(t, /non oltre il 27\/10\/2026 alle 06:00/);
+  assert.match(t, /non oltre il 27\/10\/2026 alle ore 06:00/);
   assert.doesNotMatch(t, /si restringe|6,9-12,5/);
 });

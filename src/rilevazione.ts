@@ -20,7 +20,7 @@ export function dataOraPrecedente(data: string, ora: string, ore: number): strin
   const precedente = new Date(t - Math.round(ore * 60) * 60000);
   if (!Number.isFinite(precedente.getTime())) return null;
   const due = (n: number) => String(n).padStart(2, '0');
-  return `${due(precedente.getUTCDate())}/${due(precedente.getUTCMonth() + 1)}/${precedente.getUTCFullYear()} alle ${due(precedente.getUTCHours())}:${due(precedente.getUTCMinutes())}`;
+  return `${due(precedente.getUTCDate())}/${due(precedente.getUTCMonth() + 1)}/${precedente.getUTCFullYear()} alle ore ${due(precedente.getUTCHours())}:${due(precedente.getUTCMinutes())}`;
 }
 
 export function collocaIntervallo(data: string, ora: string, l: Limiti): string | null {
@@ -32,5 +32,10 @@ export function collocaIntervallo(data: string, ora: string, l: Limiti): string 
   if (l.max === null) return `non oltre il ${recente}`;
   const remoto = dataOraPrecedente(data, ora, l.max);
   if (!remoto) return null;
-  return l.max === min ? `il ${recente}` : `tra il ${remoto} e il ${recente}`;
+  if (l.max === min) return `il ${recente}`;
+  // stesso giorno: la data una volta sola ("il 27/10/2026 tra le ore 17:31 e le ore 23:07")
+  const [giornoRemoto, oraRemota] = remoto.split(' alle ');
+  const [giornoRecente, oraRecente] = recente.split(' alle ');
+  if (giornoRemoto === giornoRecente) return `il ${giornoRecente} tra le ${oraRemota} e le ${oraRecente}`;
+  return `tra il ${remoto} e il ${recente}`;
 }

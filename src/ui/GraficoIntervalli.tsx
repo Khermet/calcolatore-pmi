@@ -15,7 +15,6 @@ export function GraficoIntervalli(props: { nomogramma: Limiti; scelte: Scelte; d
   const x = (ore: number) => 10 + ore / scalaMax * (larghezza - 20);
   const calendario = (l: Limiti) => props.dataMisura && props.oraMisura
     ? collocaIntervallo(props.dataMisura, props.oraMisura, l) : null;
-  const quandoComune = comune && calendario(comune);
   const verdeDa = comune ? x(comune.min ?? 0) : 0;
   const verdeA = comune ? x(comune.max ?? scalaMax) : 0;
 
@@ -56,14 +55,8 @@ export function GraficoIntervalli(props: { nomogramma: Limiti; scelte: Scelte; d
               </View>
             );
           })}
-          <View style={[stili.risultato, incompatibili && stili.risultatoErrore, { marginTop: 12 }]}>
-            {incompatibili ? <Text style={stili.errore}>Nessuna sovrapposizione comune</Text> : comune && (
-              <>
-                <Text style={[stili.paragrafo, { color: VERDE, fontWeight: '700' }]}>Sovrapposizione comune: {descriviLimiti(comune)}</Text>
-                {quandoComune && <Text style={stili.risultatoNota}>{quandoComune}</Text>}
-              </>
-            )}
-          </View>
+          {/* l'intervallo comune è riportato nel riquadro del metodo composto, sotto il grafico */}
+          {incompatibili && <Text style={stili.errore}>Nessuna sovrapposizione comune</Text>}
           <Text style={stili.fonte}>
             Verde: sovrapposizione di tutti gli intervalli mostrati. Freccia a destra: limite superiore non noto, non coincidente con la fine della scala. Un intervallo «entro» parte da 0 per convenzione grafica.
           </Text>
