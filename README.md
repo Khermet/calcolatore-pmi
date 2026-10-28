@@ -10,6 +10,8 @@ Dal telefono si può aggiungere alla schermata Home e poi funziona anche senza r
 
 - **Metodo di Henssge** (temperatura rettale): equazioni per temperatura ambiente fino a 23 °C e oltre, limiti al 95% per fasce di Q, tabella dei fattori correttivi.
 - **Nomogramma** costruito dalle equazioni, con la lettura del caso inserito e ingrandimento a tutto schermo.
+- **Rilievo datato**: data (`GG/MM/AAAA`) e ora (`HH:MM`) obbligatorie nel calcolatore; estremi del decesso e verbale con date esplicite, anche oltre la mezzanotte. Gli orari sono trattati nel calendario locale, senza conversioni automatiche di fuso o ora legale.
+- **Confronto degli intervalli**: limiti di ogni reperto selezionato e grafico sulla stessa scala in ore, con sovrapposizione comune, incompatibilità e limiti aperti.
 - **Metodo composto**: ipostasi, rigidità, eccitabilità meccanica; facoltativi eccitabilità elettrica e iride.
 - **Temperatura ambiente incerta**: simulazione Monte Carlo sull'intervallo plausibile.
 - **Didattica**: passaggi del calcolo, testo per il verbale, casi esercitativi con soluzione.
@@ -36,6 +38,19 @@ npm run web        # anteprima su http://localhost:8081/calcolatore-pmi
 npm test           # test del motore di calcolo
 npm run build:web  # sito statico in dist/ con service worker
 ```
+
+Il controllo browser aggiuntivo, con il server web già avviato, richiede
+`playwright-core` e Chromium. Nell'ambiente cloud predisposto:
+
+```bash
+NODE_PATH=/workspace/.cloud-tools/calcolatore-pmi/node_modules node tests/rilievo.web.cjs
+```
+
+Fuori dall'ambiente cloud, rendere disponibile `playwright-core` a Node e impostare
+`CHROMIUM_PATH` se il browser non è in `/usr/bin/chromium`;
+`APP_URL` permette di usare un server su un indirizzo diverso.
+Il controllo verifica campi obbligatori, date, grafico, temperatura incerta,
+incompatibilità, verbale e navigazione su viewport mobile e desktop.
 
 App Expo (React Native): lo stesso codice può essere compilato per iOS e Android.
 

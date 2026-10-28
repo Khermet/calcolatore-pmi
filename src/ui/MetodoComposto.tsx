@@ -3,6 +3,9 @@ import { Pressable, Text, View } from 'react-native';
 import { CRITERI, combina, type Limiti, type Scelte } from '../composto.ts';
 import { virgola } from '../formato.ts';
 import { stili } from './stili.ts';
+import { descriviLimiti } from '../intervalli.ts';
+import { collocaIntervallo } from '../rilevazione.ts';
+import { GraficoIntervalli } from './GraficoIntervalli.tsx';
 
 // riga di riepilogo per l'intestazione del pannello
 export function riassuntoComposto(nomogramma: Limiti, scelte: Scelte): string {
@@ -14,7 +17,7 @@ export function riassuntoComposto(nomogramma: Limiti, scelte: Scelte): string {
   return `${reperti} · ${virgola(e.min)}-${e.max === null ? '…' : virgola(e.max)} h`;
 }
 
-export function MetodoComposto(props: { nomogramma: Limiti; scelte: Scelte; onScelte: (s: Scelte) => void }) {
+export function MetodoComposto(props: { nomogramma: Limiti; scelte: Scelte; onScelte: (s: Scelte) => void; dataMisura?: string; oraMisura?: string }) {
   const { scelte, onScelte } = props;
   // i criteri strumentali partono visibili se il caso ne contiene già uno
   const [strumentali, setStrumentali] = useState(() =>
@@ -51,6 +54,9 @@ export function MetodoComposto(props: { nomogramma: Limiti; scelte: Scelte; onSc
               return (
                 <Pressable
                   key={o.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${c.titolo}: ${o.breve ?? o.etichetta}`}
+                  accessibilityState={{ selected: attivo }}
                   onPress={() => onScelte({ ...scelte, [c.id]: attivo ? undefined : o.id })}
                   style={[stili.chip, attivo && stili.schedaAttiva]}
                 >
@@ -59,6 +65,13 @@ export function MetodoComposto(props: { nomogramma: Limiti; scelte: Scelte; onSc
               );
             })}
           </View>
+          {c.opzioni.filter((o) => o.id === scelte[c.id]).map((o) => {
+            const quando = props.dataMisura && props.oraMisura ? collocaIntervallo(props.dataMisura, props.oraMisura, o.limiti) : null;
+            return <View key={o.id}>
+              <Text style={stili.risultatoNota}>{descriviLimiti(o.limiti)}</Text>
+              {quando && <Text style={stili.risultatoNota}>{quando}</Text>}
+            </View>;
+          })}
         </View>
       ))}
 
@@ -100,9 +113,10 @@ export function MetodoComposto(props: { nomogramma: Limiti; scelte: Scelte; onSc
           )}
         </View>
       )}
+      <GraficoIntervalli nomogramma={props.nomogramma} scelte={scelte} dataMisura={props.dataMisura} oraMisura={props.oraMisura} />
       <Text style={stili.fonte}>
         Henssge e Madea, Forensic Sci Int 2004 (Tab. 1, Tab. 2, Fig. 4); eccitabilità meccanica: Zirn et al., Int J
-        Legal Med 2026 (Tab. 1). Non inclusi: orbicolare della bocca, atropina, limiti inferiori dell'iride.
+        Legal Med 2026 (Tab. 1). Non inclusi: orbicolare della bocca, atropina, limiti inferiori dell&apos;iride.
       </Text>
     </View>
   );

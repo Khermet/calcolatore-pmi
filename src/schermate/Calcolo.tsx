@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { ScrollView, Text } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import type { Limiti, Scelte } from '../composto.ts';
 import { numero, virgola } from '../formato.ts';
 import { stimaPMI } from '../henssge.ts';
 import { simula } from '../incertezza.ts';
+import { collocaIntervallo, istanteRilievo } from '../rilevazione.ts';
 import { Campo, Colonne, Interruttore, Pannello, Passaggi, SceltaFattore, TestoVerbale } from '../ui/componenti.tsx';
 import { MetodoComposto, riassuntoComposto } from '../ui/MetodoComposto.tsx';
 import { Nomogramma } from '../ui/Nomogramma.tsx';
@@ -19,9 +20,11 @@ export function Calcolo() {
   const [peso, setPeso] = useState('70');
   const [cf, setCf] = useState('1,0');
   const [condizioni, setCondizioni] = useState('');
+  const [dataMisura, setDataMisura] = useState('');
   const [oraMisura, setOraMisura] = useState('');
   const [scelte, setScelte] = useState<Scelte>({});
 
+  const rilievoValido = istanteRilievo(dataMisura, oraMisura) !== null;
   const tr = numero(tRettale);
   const min = numero(taMin);
   const max = numero(taMax);
@@ -38,11 +41,14 @@ export function Calcolo() {
     nomogramma = { min: Math.max(0, esito.ore - esito.margine), max: esito.ore + esito.margine };
   }
 
+  const collocazioneTermica = collocaIntervallo(dataMisura, oraMisura, nomogramma);
+
   const caso = {
     ...dati,
     ...(incerta ? { taMin: min, taMax: max } : {}),
     condizioni: condizioni || undefined,
-    oraMisura: oraMisura.trim() || undefined,
+    dataMisura: dataMisura.trim(),
+    oraMisura: oraMisura.trim(),
     scelte,
   };
 
@@ -50,6 +56,13 @@ export function Calcolo() {
     <ScrollView contentContainerStyle={stili.contenuto} keyboardShouldPersistTaps="handled">
       <Text style={stili.titolo}>Epoca della morte</Text>
       <Text style={stili.sottotitolo}>Metodo di Henssge e metodo composto</Text>
+
+      <Colonne>
+        <Campo etichetta="Data rilievo" valore={dataMisura} onChange={setDataMisura} unita="" tastiera="testo" segnaposto="GG/MM/AAAA" obbligatorio />
+        <Campo etichetta="Ora rilievo" valore={oraMisura} onChange={setOraMisura} unita="" tastiera="testo" segnaposto="HH:MM" obbligatorio />
+      </Colonne>
+      {!rilievoValido && <Text style={stili.errore} accessibilityRole="alert">Inserisci una data valida (GG/MM/AAAA) e un&apos;ora valida (HH:MM) del rilievo: entrambi i campi sono obbligatori.</Text>}
+      <Text style={stili.fonte}>Date e orari nel calendario locale del rilievo, senza conversioni automatiche di fuso o ora legale.</Text>
 
       {incerta ? (
         <Colonne>
@@ -74,7 +87,6 @@ export function Calcolo() {
           }}
           unita=""
         />
-        <Campo etichetta="Ora misura" valore={oraMisura} onChange={setOraMisura} unita="" tastiera="testo" segnaposto="10:30" />
       </Colonne>
       <Interruttore
         attivo={incerta}
@@ -90,32 +102,44 @@ export function Calcolo() {
         }}
       />
 
-      {simulazione ? (
-        <RisultatoIncerto esito={simulazione} taMin={min} taMax={max} />
-      ) : (
-        <RisultatoHenssge esito={esito} cf={dati.cf} peso={dati.peso} />
+      {rilievoValido && (
+        <>
+          {simulazione ? (
+            <RisultatoIncerto esito={simulazione} taMin={min} taMax={max} />
+          ) : (
+            <RisultatoHenssge esito={esito} cf={dati.cf} peso={dati.peso} />
+          )}
+
+          {collocazioneTermica && (
+            <View style={stili.risultato}>
+              <Text style={stili.risultatoNota}>Collocazione temporale secondo Henssge</Text>
+              <Text style={stili.paragrafo}>{collocazioneTermica}</Text>
+            </View>
+          )}
+
+          <Pannello titolo="Nomogramma" riassunto={esito.ok ? `lettura ${virgola(esito.ore)} h` : 'non applicabile'}>
+            <Nomogramma tRettale={tr} tAmbiente={ta} peso={dati.peso} cf={dati.cf} esito={esito} />
+            {incerta && (
+              <Text style={stili.fonte}>Nel nomogramma la temperatura ambiente è il valore centrale dell&apos;intervallo.</Text>
+            )}
+          </Pannello>
+
+          <Pannello titolo="Metodo composto" riassunto={riassuntoComposto(nomogramma, scelte)}>
+            <MetodoComposto nomogramma={nomogramma} scelte={scelte} onScelte={setScelte} dataMisura={dataMisura} oraMisura={oraMisura} />
+          </Pannello>
+          <Pannello titolo="Passaggi del calcolo">
+            <Passaggi dati={caso} />
+          </Pannello>
+          <Pannello titolo="Testo per il verbale" riassunto="da copiare">
+            <TestoVerbale dati={caso} />
+          </Pannello>
+
+        </>
       )}
-
-      <Pannello titolo="Nomogramma" riassunto={esito.ok ? `lettura ${virgola(esito.ore)} h` : 'non applicabile'}>
-        <Nomogramma tRettale={tr} tAmbiente={ta} peso={dati.peso} cf={dati.cf} esito={esito} />
-        {incerta && (
-          <Text style={stili.fonte}>Nel nomogramma la temperatura ambiente è il valore centrale dell'intervallo.</Text>
-        )}
-      </Pannello>
-
-      <Pannello titolo="Metodo composto" riassunto={riassuntoComposto(nomogramma, scelte)}>
-        <MetodoComposto nomogramma={nomogramma} scelte={scelte} onScelte={setScelte} />
-      </Pannello>
-      <Pannello titolo="Passaggi del calcolo">
-        <Passaggi dati={caso} />
-      </Pannello>
-      <Pannello titolo="Testo per il verbale" riassunto="da copiare">
-        <TestoVerbale dati={caso} />
-      </Pannello>
 
       <Text style={stili.avvertenza}>
         Strumento didattico. Non applicabile con irraggiamento, corpo spostato, ipotermia o cambiamenti marcati
-        delle condizioni di raffreddamento (l'intervallo di temperatura ambiente copre solo oscillazioni
+        delle condizioni di raffreddamento (l&apos;intervallo di temperatura ambiente copre solo oscillazioni
         plausibili). Non sostituisce la valutazione del medico legale.
       </Text>
     </ScrollView>
