@@ -89,13 +89,13 @@ export const CRITERI: Criterio[] = [
   {
     id: 'spostamento',
     requisito: 'nessuno',
-    titolo: 'Spostamento delle ipostasi',
+    titolo: 'Migrabilità delle ipostasi',
     nota: 'dopo cambio di posizione',
     fonte: 'Tab. 2',
     opzioni: [
-      { id: 'completo', etichetta: 'Si spostano completamente', breve: 'Completo', limiti: L(null, 6) },
-      { id: 'incompleto', etichetta: 'Si spostano in parte', breve: 'Parziale', limiti: L(2, 24) },
-      { id: 'fisse', etichetta: 'Non si spostano', breve: 'Nessuno', limiti: L(4, null) },
+      { id: 'completo', etichetta: 'Migrano completamente', breve: 'Completa', limiti: L(null, 6) },
+      { id: 'incompleto', etichetta: 'Migrano in parte', breve: 'Parziale', limiti: L(2, 24) },
+      { id: 'fisse', etichetta: 'Non migrano', breve: 'Assente', limiti: L(4, null) },
     ],
   },
   {

@@ -18,11 +18,11 @@ test('senza criteri resta l\'intervallo del nomogramma', () => {
 });
 
 test('i criteri restringono solo se migliorano i limiti', () => {
-  // Ipostasi che si spostano completamente: limite superiore 6 h.
+  // Ipostasi completamente migrabili: limite superiore 6 h.
   const e = combina({ min: 2, max: 9 }, { spostamento: 'completo', rigidita: 'completa' });
   assert.equal(e.min, 2);
   assert.equal(e.max, 6);
-  assert.match(e.determinanti.max!, /Spostamento delle ipostasi/);
+  assert.match(e.determinanti.max!, /Migrabilità delle ipostasi/);
   assert.equal(e.determinanti.min, null);
 });
 

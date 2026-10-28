@@ -20,12 +20,14 @@ export const SEZIONI: Sezione[] = [
     id: 'arrivo',
     titolo: 'Arrivo e prime operazioni',
     voci: [
+      // prima si individua chi c'è delle forze dell'ordine e chi coordina, poi si raccolgono le informazioni
+      { id: 'forze-ordine', testo: "Individuare chi è presente delle forze dell'ordine e chi coordina le operazioni", fonte: R('I.a.2') },
       { id: 'circostanze', testo: 'Farsi riferire tutte le circostanze note della morte', fonte: R('I.b.2.a') },
+      { id: 'testimoni', testo: "Raccogliere le notizie dei testimoni, in particolare di chi ha visto la persona in vita per l'ultima volta", fonte: R('I.b.1.d') },
       { id: 'persone', testo: 'Annotare chi è presente sul luogo (compito della polizia)', fonte: R('I.b.1.a') },
       { id: 'delimitazione', testo: 'Verificare che il luogo sia delimitato e protetto dagli estranei', fonte: `${P}; ${R('I.b.1.g')}` },
       { id: 'insieme', testo: 'Prima di toccare nulla, osservare la scena nel suo insieme', fonte: P },
       { id: 'foto-iniziali', testo: 'Assicurarsi che il corpo sia fotografato come è stato trovato', fonte: R('I.b.1.b, I.b.2.b') },
-      { id: 'testimoni', testo: "Raccogliere le notizie dei testimoni, in particolare di chi ha visto la persona in vita per l'ultima volta", fonte: R('I.b.1.d') },
     ],
   },
   {
@@ -71,7 +73,7 @@ export const SEZIONI: Sezione[] = [
       { id: 'raffreddamento', testo: 'Condizioni di raffreddamento: vesti e coperte, superficie di appoggio, correnti d\'aria, bagnato', fonte: P },
       { id: 'peso', testo: 'Peso corporeo (misurato o stimato)', fonte: 'Henssge e Madea 2004' },
       { id: 'rigidita', testo: 'Rigidità: distribuzione e intensità', fonte: `${R('I.b.2.c, f')}; ${P}` },
-      { id: 'ipostasi', testo: 'Ipostasi: distribuzione, coerenza con la posizione, digitopressione, spostabilità', fonte: `${R('I.b.2.c, f')}; ${P}` },
+      { id: 'ipostasi', testo: 'Ipostasi: distribuzione, coerenza con la posizione, digitopressione, migrabilità', fonte: `${R('I.b.2.c, f')}; ${P}` },
       { id: 'putrefazione', testo: 'Segni di putrefazione', fonte: R('I.b.2.c, f') },
     ],
   },
