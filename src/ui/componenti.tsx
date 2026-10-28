@@ -13,15 +13,18 @@ export function Campo(props: {
   unita: string;
   tastiera?: 'decimale' | 'testo';
   segnaposto?: string;
+  obbligatorio?: boolean;
 }) {
   return (
     <View style={stili.campo}>
       <Text style={stili.etichetta} numberOfLines={1}>
-        {props.etichetta}
+        {props.etichetta}{props.obbligatorio ? ' *' : ''}
         {props.unita ? ` (${props.unita})` : ''}
       </Text>
       <TextInput
         style={stili.input}
+        accessibilityLabel={`${props.etichetta}${props.obbligatorio ? ' *' : ''}`}
+        accessibilityHint={props.obbligatorio ? 'Campo obbligatorio' : undefined}
         value={props.valore}
         onChangeText={props.onChange}
         placeholder={props.segnaposto}

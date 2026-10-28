@@ -2,7 +2,8 @@
 import { T_INIZIALE, coefficienteB, stimaPMI } from './henssge.ts';
 import { CRITERI, combina, type Limiti, type Scelte } from './composto.ts';
 import { virgola, orarioPrecedente } from './formato.ts';
-import { simula } from './incertezza.ts';
+import { simula, type EsitoIncerto } from './incertezza.ts';
+import { collocaIntervallo, istanteRilievo } from './rilevazione.ts';
 
 export type DatiCaso = {
   tRettale: number;
@@ -12,6 +13,7 @@ export type DatiCaso = {
   peso: number;
   cf: number;
   condizioni?: string; // descrizione di indumenti/ambiente
+  dataMisura?: string; // "GG/MM/AAAA"
   oraMisura?: string; // "HH:MM"
   scelte?: Scelte;
 };
@@ -50,9 +52,9 @@ export function passaggi(d: DatiCaso): string[] {
   return righe;
 }
 
-function intervalloIncerto(d: DatiCaso): { min: number; max: number; estrazioni: number } | null {
+function intervalloIncerto(d: DatiCaso, simulazione?: EsitoIncerto): { min: number; max: number; estrazioni: number } | null {
   if (d.taMin === undefined || d.taMax === undefined) return null;
-  const s = simula({ tRettale: d.tRettale, taMin: d.taMin, taMax: d.taMax, peso: d.peso, cf: d.cf });
+  const s = simulazione ?? simula({ tRettale: d.tRettale, taMin: d.taMin, taMax: d.taMax, peso: d.peso, cf: d.cf });
   if (!s.ok || !Number.isFinite(s.inviluppoMin)) return null;
   return { min: s.inviluppoMin, max: s.inviluppoMax, estrazioni: s.validi + s.scartati };
 }
@@ -110,7 +112,8 @@ const intervallo = (l: { min: number; max: number | null }) =>
 
 // "il giorno precedente, tra le ore 16:30 e le ore 19:00" o, a cavallo di due giorni,
 // "tra le ore 22:15 del giorno precedente e le ore 01:30"
-function collocazione(oraMisura: string | undefined, l: { min: number; max: number | null }): string | null {
+function collocazione(oraMisura: string | undefined, l: { min: number; max: number | null }, dataMisura?: string): string | null {
+  if (dataMisura) return collocaIntervallo(dataMisura, oraMisura ?? '', l);
   if (!oraMisura) return null;
   const piuRecente = orarioPrecedente(oraMisura, l.min);
   if (!piuRecente) return null;
@@ -127,10 +130,16 @@ function collocazione(oraMisura: string | undefined, l: { min: number; max: numb
 
 export function testoVerbale(d: DatiCaso): string {
   const e = stimaPMI(d);
-  const incerta = intervalloIncerto(d);
-  const quando = d.oraMisura ? `Alle ore ${d.oraMisura}` : 'Al momento del sopralluogo';
-  const ambiente = incerta
-    ? `con temperatura ambiente non costante, stimata tra ${virgola(d.taMin!)} e ${virgola(d.taMax!)} °C`
+  const richiestaIncerta = d.taMin !== undefined || d.taMax !== undefined;
+  const estremiPresenti = d.taMin !== undefined && d.taMax !== undefined;
+  const simulazione = estremiPresenti ? simula({ tRettale: d.tRettale, taMin: d.taMin!, taMax: d.taMax!, peso: d.peso, cf: d.cf }) : undefined;
+  const incerta = intervalloIncerto(d, simulazione);
+  const datato = d.dataMisura && istanteRilievo(d.dataMisura, d.oraMisura ?? '') !== null;
+  const quando = datato ? `Il ${d.dataMisura!.trim()} alle ore ${d.oraMisura!.trim()}` : d.oraMisura ? `Alle ore ${d.oraMisura}` : 'Al momento del sopralluogo';
+  const ambiente = richiestaIncerta
+    ? estremiPresenti
+      ? `con temperatura ambiente non costante, stimata tra ${virgola(d.taMin!)} e ${virgola(d.taMax!)} °C`
+      : 'con temperatura ambiente incerta'
     : `con temperatura ambiente di ${virgola(d.tAmbiente)} °C`;
   const condizioni = d.condizioni
     ? `condizioni di raffreddamento: ${d.condizioni} (fattore correttivo ${virgola(d.cf, 2)})`
@@ -138,15 +147,19 @@ export function testoVerbale(d: DatiCaso): string {
   let primo =
     `${quando} è stata rilevata una temperatura rettale di ${virgola(d.tRettale)} °C, ${ambiente}; ` +
     `peso corporeo ${virgola(d.peso, 0)} kg; ${condizioni}.`;
-  if (!e.ok && !incerta) return `${primo} Il metodo di Henssge non è applicabile al caso: ${e.errore}`;
+  if (!e.ok && !richiestaIncerta) primo += ` Il metodo di Henssge non è applicabile al caso: ${e.errore}`;
 
   let nomogramma: Limiti = { min: null, max: null };
+  if (richiestaIncerta && !incerta) {
+    const motivo = simulazione && !simulazione.ok ? simulazione.errore : 'Limiti al 95% non disponibili per la simulazione.';
+    primo += ` Con temperatura ambiente incerta non è disponibile un intervallo termico. ${motivo}`;
+  }
   if (incerta) {
     nomogramma = { min: incerta.min, max: incerta.max };
     primo +=
       ' In applicazione del nomogramma di Henssge all\'intera forbice di temperatura ambiente plausibile, ' +
       `l'intervallo post-mortale, comprensivo dei limiti al 95%, risulta ${intervallo(incerta)}.`;
-  } else if (e.ok) {
+  } else if (e.ok && !richiestaIncerta) {
     primo += ` In applicazione del nomogramma di Henssge l'intervallo post-mortale risulta di ${virgola(e.ore)} ore`;
     if (e.margine === null) {
       primo += '; con Q ≤ 0,2 non sono disponibili limiti al 95% e la stima ha valore solo orientativo.';
@@ -160,19 +173,19 @@ export function testoVerbale(d: DatiCaso): string {
   const reperti = frasiReperti(scelte);
   const termico = nomogramma.min !== null ? { min: nomogramma.min, max: nomogramma.max } : null;
   if (!reperti) {
-    const dove = termico && collocazione(d.oraMisura, termico);
+    const dove = termico && collocazione(d.oraMisura, termico, d.dataMisura);
     return dove ? `${primo} Il decesso è pertanto collocabile ${dove}.` : primo;
   }
 
   const r = combina(nomogramma, scelte);
   let secondo: string;
   if (r.contraddizione) {
-    secondo =
-      `I fenomeni cadaverici rilevati (${reperti}) non risultano compatibili con l'intervallo termico: ` +
-      'le condizioni di raffreddamento vanno riconsiderate.';
+    secondo = termico
+      ? `I fenomeni cadaverici rilevati (${reperti}) non risultano compatibili con l'intervallo termico: le condizioni di raffreddamento vanno riconsiderate.`
+      : `I fenomeni cadaverici rilevati (${reperti}) non sono reciprocamente compatibili: ricontrollare i rilievi. Non è possibile ricavare un intervallo comune.`;
   } else {
     const ristretto = !termico || r.min > termico.min + 1e-9 || (r.max !== null && (termico.max === null || r.max < termico.max - 1e-9));
-    const dove = collocazione(d.oraMisura, r);
+    const dove = collocazione(d.oraMisura, r, d.dataMisura);
     if (ristretto) {
       const quanto =
         r.max === null
